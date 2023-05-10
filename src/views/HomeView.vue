@@ -6,8 +6,8 @@
       <button @click="addCylinder">Make Holes</button>
     </div>
     <div class="texture-group">
-      <div class="texture1" @click="selectTexture('/textures/1.png')"></div>
       <div class="texture2" @click="selectTexture('/textures/2.png')"></div>
+      <div class="texture1" @click="selectTexture('/textures/1.png')"></div>
     </div>
     <div class="box-size-container">
       <div style="position: relative; left: -50%; display: flex;">
@@ -34,7 +34,7 @@ import { CSG } from 'three-csg-ts'
 export default {
   data() {
     return {
-      texture: "/textures/1.png",
+      texture: "/textures/2.png",
       cPos: [8, 5, 0],
       cParams: [0.5, 0.5, 5, 30],
 
