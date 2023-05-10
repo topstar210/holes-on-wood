@@ -4,7 +4,7 @@ you can cut out holes. There are two textures and two buttons, one button for ac
 ![image](https://github.com/topstar210/holes-on-wood/assets/109362950/2039f2d4-5fb9-45ca-94fb-43609c0276eb)
 
 Preview site in Here: 
-https://holesinwood.netlify.app/(https://holesinwood.netlify.app/)
+https://holesinwood.netlify.app/
 
 ## Project Setup
 
