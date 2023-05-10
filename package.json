@@ -1,0 +1,22 @@
+{
+  "name": "wood_holdes",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "three": "^0.152.2",
+    "three-csg-ts": "^3.1.13",
+    "vue": "^3.2.47",
+    "vue-router": "^4.1.6",
+    "vue-threejs": "^0.2.0-alpha.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.2.1",
+    "@vitejs/plugin-vue-jsx": "^3.0.1",
+    "vite": "^4.3.4"
+  }
+}
