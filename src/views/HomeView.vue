@@ -12,13 +12,13 @@
     <div class="box-size-container">
       <div style="position: relative; left: -50%; display: flex;">
         <div class="mx-1">
-          <label for="">Length</label><input type="number" v-model="boxL" :disabled="inputDisabled" />
+          <label for="">Length</label><input type="number" v-model="boxL" :disabled="holeFlag" />
         </div>
         <div class="mx-1">
-          <label for="">Broad</label><input type="number" v-model="boxB" :disabled="inputDisabled" />
+          <label for="">Broad</label><input type="number" v-model="boxB" :disabled="holeFlag" />
         </div>
         <div class="mx-1">
-          <label for="">Strength</label><input type="number" v-model="boxS" :disabled="inputDisabled" />
+          <label for="">Strength</label><input type="number" v-model="boxS" :disabled="holeFlag" />
         </div>
       </div>
     </div>
@@ -34,7 +34,7 @@ import { CSG } from 'three-csg-ts'
 export default {
   data() {
     return {
-      texture: "/textures/2.png",
+      texture: "/textures/1.png",
       cPos: [8, 5, 0],
       cParams: [0.5, 0.5, 5, 30],
 
@@ -48,7 +48,7 @@ export default {
       cylinder: null,
       scene: null,
 
-      inputDisabled: false,
+      holeFlag: false,
     };
   },
   mounted() {
@@ -63,7 +63,7 @@ export default {
     // create a renderer
     const renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor( 0xffffff, 0);
+    renderer.setClearColor(0xffffff, 0);
 
     // add the renderer to the component's container element
     this.$refs.container.appendChild(renderer.domElement);
@@ -86,7 +86,7 @@ export default {
     const texture = new THREE.TextureLoader().load(this.texture);
     const box = new THREE.Mesh(
       new THREE.BoxGeometry(this.boxL, this.boxB, this.boxS),
-      new THREE.MeshBasicMaterial({ map: texture })
+      new THREE.MeshMatcapMaterial({ map: texture })
     );
     this.box = box;
 
@@ -96,40 +96,47 @@ export default {
       new THREE.MeshNormalMaterial()
     );
     cylinder.geometry.rotateX(Math.PI / 2);
-    cylinder.position.set(this.cPos[0], this.cPos[1], this.cPos[2]);
+    // cylinder.position.set(this.cPos[0], this.cPos[1], this.cPos[2]);
     this.cylinder = cylinder;
 
-    control.attach(cylinder);
-    this.control = control;
-    // scene.add(control);
+    // calc max pos by camera focuse
+    const vFOV = (camera.fov * Math.PI) / 180;
+    const maxHeight = 2 * Math.tan(vFOV / 2) * Math.abs(camera.position.z);
+    const maxWidth = maxHeight * camera.aspect;
+    this.$refs.container.addEventListener('mousemove', function (event) {
+      const x = (event.clientX / window.innerWidth) * maxWidth - maxWidth / 2;
+      const y = - (event.clientY / window.innerHeight) * maxHeight + maxHeight / 2;
 
-    // 
-    control.addEventListener('dragging-changed', function (event) {
-      if (event.value == false) {
-        while (scene.children.length > 0) {
-          scene.remove(scene.children[0]);
-        }
-        if(_self.subRes == null) this.subRes = null;
+      _self.cylinder.position.set(x, y, _self.cPos[2]);
+    }, false);
+    this.$refs.container.addEventListener('click', function (event) {
+      if(!_self.holeFlag) return;
 
-        const hole = new THREE.Mesh(new THREE.CylinderGeometry(_self.cParams[0], _self.cParams[1], _self.cParams[2], _self.cParams[3]));
-        hole.geometry.rotateX(Math.PI / 2);
-        hole.geometry.translate(cylinder.position.x, cylinder.position.y, cylinder.position.z);
+      const x = (event.clientX / window.innerWidth) * maxWidth - maxWidth / 2;
+      const y = - (event.clientY / window.innerHeight) * maxHeight + maxHeight / 2;
 
-        this.subRes = this.subRes ? CSG.subtract(this.subRes, hole) : CSG.subtract(_self.box, hole);
-        _self.subRes = this.subRes;
-
-        scene.add(this.subRes, cylinder);
-        scene.add(control);
-
-        animate();
+      while (_self.scene.children.length > 0) {
+        _self.scene.remove(_self.scene.children[0]);
       }
-      orbit.enabled = !event.value;
-    });
+      if (_self.subRes == null) this.subRes = null;
+
+      const hole = new THREE.Mesh(new THREE.CylinderGeometry(_self.cParams[0], _self.cParams[1], _self.cParams[2], _self.cParams[3]));
+      hole.geometry.rotateX(Math.PI / 2);
+      hole.geometry.translate(cylinder.position.x, cylinder.position.y, _self.cPos[2]);
+
+      this.subRes = this.subRes ? CSG.subtract(this.subRes, hole) : CSG.subtract(_self.box, hole);
+      _self.subRes = this.subRes;
+
+      scene.add(this.subRes, cylinder);
+
+      animate();
+    }, false);
+
 
     // add the meshes to the scene
     scene.add(box);
     this.scene = scene;
-    
+
     animate();
   },
   methods: {
@@ -139,13 +146,11 @@ export default {
         this.scene.remove(this.scene.children[0]);
       }
       this.scene.add(this.box);
-      this.inputDisabled = false;
+      this.holeFlag = false;
     },
     addCylinder() {
-      this.cylinder.position.set(this.cPos[0], this.cPos[1], this.cPos[2]);
       this.scene.add(this.cylinder);
-      this.scene.add(this.control);
-      this.inputDisabled = true;
+      this.holeFlag = true;
     },
     selectTexture(textureUrl) {
       this.texture = textureUrl;
@@ -156,7 +161,7 @@ export default {
       const scaleFactorX = this.boxL / this.box.geometry.parameters.width;
       const scaleFactorY = this.boxB / this.box.geometry.parameters.height;
       const scaleFactorZ = this.boxS / this.box.geometry.parameters.depth;
-      this.box.scale.set( scaleFactorX, scaleFactorY, scaleFactorZ );
+      this.box.scale.set(scaleFactorX, scaleFactorY, scaleFactorZ);
     }
   },
   watch: {
@@ -180,6 +185,7 @@ export default {
   right: 10px;
   display: grid;
 }
+
 .control-card button {
   border-width: 0;
   background-color: #3EB2FD;
@@ -191,21 +197,24 @@ export default {
   line-height: 1.5;
   padding: 6px 20px;
   text-align: center;
-  transition: background-color .2s,background-position .2s;
+  transition: background-color .2s, background-position .2s;
   margin-bottom: 5px;
 }
-.texture-group{
+
+.texture-group {
   position: absolute;
   top: 5px;
 }
-.texture-group .texture1{
+
+.texture-group .texture1 {
   width: 80px;
   height: 80px;
   margin: 5px;
   background: url('/textures/1.png');
   cursor: pointer;
 }
-.texture-group .texture2{
+
+.texture-group .texture2 {
   width: 80px;
   height: 80px;
   margin: 5px;
@@ -213,15 +222,17 @@ export default {
   cursor: pointer;
 }
 
-.box-size-container{
+.box-size-container {
   position: absolute;
   bottom: 10px;
-  left: 50%; 
+  left: 50%;
 }
+
 .box-size-container input {
   width: 50px;
 }
-.mx-1{
+
+.mx-1 {
   margin: 0 4px 0 4px;
 }
 </style>
