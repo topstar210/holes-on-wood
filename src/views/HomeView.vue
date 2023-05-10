@@ -6,8 +6,8 @@
       <button @click="addCylinder">Make Holes</button>
     </div>
     <div class="texture-group">
-      <div class="texture2" @click="selectTexture('/textures/2.png')"></div>
       <div class="texture1" @click="selectTexture('/textures/1.png')"></div>
+      <div class="texture2" @click="selectTexture('/textures/2.png')"></div>
     </div>
     <div class="box-size-container">
       <div style="position: relative; left: -50%; display: flex;">
@@ -34,7 +34,7 @@ import { CSG } from 'three-csg-ts'
 export default {
   data() {
     return {
-      texture: "/textures/2.png",
+      texture: "/textures/1.png",
       cPos: [8, 5, 0],
       cParams: [0.5, 0.5, 5, 30],
 
@@ -84,6 +84,10 @@ export default {
 
     // Make a wood mesh
     const texture = new THREE.TextureLoader().load(this.texture);
+    texture.magFilter = THREE.LinearFilter;
+    texture.minFilter = THREE.LinearFilter;
+    texture.mapping = THREE.CubeReflectionMapping;
+    texture.colorSpace = THREE.SRGBColorSpace;
     const box = new THREE.Mesh(
       new THREE.BoxGeometry(this.boxL, this.boxB, this.boxS),
       new THREE.MeshMatcapMaterial({ map: texture })
@@ -110,7 +114,7 @@ export default {
       _self.cylinder.position.set(x, y, _self.cPos[2]);
     }, false);
     this.$refs.container.addEventListener('click', function (event) {
-      if(!_self.holeFlag) return;
+      if (!_self.holeFlag) return;
 
       const x = (event.clientX / window.innerWidth) * maxWidth - maxWidth / 2;
       const y = - (event.clientY / window.innerHeight) * maxHeight + maxHeight / 2;
@@ -154,7 +158,13 @@ export default {
     },
     selectTexture(textureUrl) {
       this.texture = textureUrl;
-      this.box.material.map = new THREE.TextureLoader().load(this.texture);
+
+      const texture = new THREE.TextureLoader().load(this.texture);
+      texture.magFilter = THREE.LinearFilter;
+      texture.minFilter = THREE.LinearFilter;
+      texture.mapping = THREE.CubeReflectionMapping;
+      texture.colorSpace = THREE.SRGBColorSpace;
+      this.box.material.map = texture;
       this.box.material.needsUpdate = true;
     },
     changeBoxSize() {
