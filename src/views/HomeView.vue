@@ -28,19 +28,18 @@
 <script>
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-import { TransformControls } from 'three/addons/controls/TransformControls';
 import { CSG } from 'three-csg-ts'
 
 export default {
   data() {
     return {
       texture: "/textures/1.png",
-      cPos: [8, 5, 0],
-      cParams: [0.5, 0.5, 5, 30],
+      cPos: [80, 50, 0],
+      cParams: [3, 3, 50, 30],
 
-      boxL: 8,
-      boxB: 15,
-      boxS: 1,
+      boxL: 80,
+      boxB: 150,
+      boxS: 10,
 
       block: null,
       subRes: null,
@@ -57,13 +56,14 @@ export default {
     const scene = new THREE.Scene();
 
     // create a camera
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
-    camera.position.set(0, 0, 13);
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
+    camera.position.set(0, 50, 130);
 
     // create a renderer
-    const renderer = new THREE.WebGLRenderer();
+    const renderer = new THREE.WebGLRenderer( { antialias: true } );
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0xffffff, 0);
+    renderer.setPixelRatio(window.devicePixelRatio);
 
     // add the renderer to the component's container element
     this.$refs.container.appendChild(renderer.domElement);
@@ -75,13 +75,8 @@ export default {
     };
 
     const orbit = new OrbitControls(camera, renderer.domElement)
-    orbit.enableDamping = true;
     orbit.update();
-    orbit.addEventListener('change', animate);
-
-    const control = new TransformControls(camera, renderer.domElement);
-    control.addEventListener('change', animate);
-
+    
     // Make a wood mesh
     const texture = new THREE.TextureLoader().load(this.texture);
     texture.magFilter = THREE.LinearFilter;
